@@ -26,10 +26,11 @@ if(PEGTL_INCLUDE_DIRS)
   set (PEGTL_FIND_QUIETLY TRUE)
 endif()
 
-find_path(PEGTL_INCLUDE_DIR NAMES pegtl.hpp
-                            HINTS ${PEGTL_ROOT}/include
-                                  $ENV{PEGTL_ROOT}
-                            PATH_SUFFIXES pegtl/include/tao)
+
+find_path(PEGTL_INCLUDE_DIR NAMES pegtl.hh
+                             HINTS ${PEGTL_ROOT}/include
+                                   $ENV{PEGTL_ROOT}
+                             PATH_SUFFIXES pegtl tao/pegtl)
 
 set(PEGTL_INCLUDE_DIRS ${PEGTL_INCLUDE_DIR})
 

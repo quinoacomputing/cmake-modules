@@ -4,7 +4,6 @@
 # \author    J. Bakosi
 # \copyright 2012-2015, Jozsef Bakosi, 2016, Los Alamos National Security, LLC.
 # \brief     Find PEGTL
-# \date      Wed 24 May 2017 10:24:15 AM MDT
 #
 ################################################################################
 

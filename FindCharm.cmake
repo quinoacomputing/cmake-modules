@@ -1,7 +1,6 @@
 ################################################################################
 #
 # \file      cmake/FindCharm.cmake
-# \author    C. Junghans
 # \copyright 2016, Los Alamos National Security, LLC.
 # \brief     Find the Charm++
 # \date      Fri 20 Jan 2017 12:14:50 PM MST

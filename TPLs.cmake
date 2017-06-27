@@ -1,7 +1,6 @@
 ################################################################################
 #
 # \file      cmake/TPLs.cmake
-# \author    J. Bakosi
 # \copyright 2012-2015, Jozsef Bakosi, 2016, Los Alamos National Security, LLC.
 # \brief     Find the third-party libraries required to build Quinoa
 # \date      Sun 05 Mar 2017 08:56:51 PM MST

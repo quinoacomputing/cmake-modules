@@ -62,7 +62,7 @@ find_package(Pugixml REQUIRED)
 
 #### PEGTL
 set(PEGTL_ROOT ${TPL_DIR}) # prefer ours
-find_package(PEGTL 2.0.0 REQUIRED)
+find_package(PEGTL REQUIRED)
 
 #### Random123
 set(Random123_ROOT ${TPL_DIR}) # prefer ours

@@ -34,6 +34,21 @@ function(_GET_CHARMINC _OUT_INC _charmc)
   endif()
 endfunction()
 
+# find out if Charm++ was built with randomzied message queues
+function(GET_CHARM_QUEUE_TYPE CHARM_RNDQ conv_conf_hdr)
+  file( STRINGS ${conv_conf_hdr} _contents
+        REGEX ".*#define CMK_RANDOMIZED_MSGQ[ \t]+" )
+  if(_contents)
+    string(REGEX REPLACE ".*#define CMK_RANDOMIZED_MSGQ[ \t]+([01]+).*" "\\1" RNDQ "${_contents}")
+    if (RNDQ EQUAL 1)
+      set(CHARM_RNDQ true PARENT_SCOPE)
+      message(STATUS "Charm++ randomized message queues detected")
+    endif()
+  else()
+    message(FATAL_ERROR "Include file ${conv_conf_hdr} does not exist")
+ endif()
+endfunction()
+
 # If already in cache, be silent
 if (CHARM_INCLUDE_DIRS AND CHARM_COMPILER)
   set (CHARM_FIND_QUIETLY TRUE)
@@ -59,6 +74,13 @@ FIND_PATH(CHARM_INCLUDE_DIR NAMES charm.h
                                   ${CHARM_ROOT}/include
                                   $ENV{CHARM_ROOT}/include
                             PATH_SUFFIXES charm)
+if(CHARM_INCLUDE_DIR)
+  FIND_PATH(CHARM_CONV_HDR NAMES conv-autoconfig.h
+                           HINTS ${HINTS_CHARMINC}
+                                 ${CHARM_INCLUDE_DIR}
+                           PATH_SUFFIXES ../tmp)
+  GET_CHARM_QUEUE_TYPE(CHARM_QUEUE_TYPE ${CHARM_CONV_HDR}/conv-autoconfig.h)
+endif()
 
 set(CHARM_INCLUDE_DIRS ${CHARM_INCLUDE_DIR})
 

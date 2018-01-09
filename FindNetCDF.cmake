@@ -53,14 +53,14 @@ if(NOT BUILD_SHARED_LIBS)
                       ${NETCDF_DIR}
                       $ENV{NETCDF_DIR}
                       ${CMAKE_INSTALL_PREFIX}
-                PATH_SUFFIXES lib)
+                PATH_SUFFIXES lib lib64)
 else()
   find_library (NETCDF_LIBRARIES_C NAMES netcdf
                 HINTS ${NETCDF_ROOT}
                       ${NETCDF_DIR}
                       $ENV{NETCDF_DIR}
                       ${CMAKE_INSTALL_PREFIX}
-                PATH_SUFFIXES lib)
+                PATH_SUFFIXES lib lib64)
 endif()
 mark_as_advanced(NETCDF_LIBRARIES_C)
 

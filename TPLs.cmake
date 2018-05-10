@@ -1,7 +1,7 @@
 ################################################################################
 #
 # \file      cmake/TPLs.cmake
-# \copyright 2012-2015, J. Bakosi, 2016-2017, Los Alamos National Security, LLC.
+# \copyright 2012-2015, J. Bakosi, 2016-2018, Los Alamos National Security, LLC.
 # \brief     Find the third-party libraries required to build Quinoa
 #
 ################################################################################
@@ -141,6 +141,18 @@ if(ENABLE_ROOT)
       endif()
     endif()
   endif()
+endif()
+
+#### Configure Backward-cpp
+set(BACKWARD_ROOT ${TPL_DIR}) # prefer ours
+find_package(Backward)
+if(Backward_FOUND)
+  set(HAS_BACKWARD true)  # will become compiler define in Main/QuinoaConfig.h
+  message(STATUS "Backward-cpp config: ${BACKWARD_DEFINITIONS}")
+  message(STATUS "Backward-cpp libraries: ${BACKWARD_LIBRARIES}")
+else()
+  set(BACKWARD_INCLUDE_DIRS "")
+  set(BACKWARD_LIBRARIES "")
 endif()
 
 message(STATUS "------------------------------------------")

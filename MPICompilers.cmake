@@ -1,7 +1,7 @@
 ################################################################################
 #
 # \file      cmake/MPICompilers.cmake
-# \copyright 2012-2015, J. Bakosi, 2016-2017, Los Alamos National Security, LLC.
+# \copyright 2012-2015, J. Bakosi, 2016-2018, Los Alamos National Security, LLC.
 # \brief     Find the MPI wrappers
 #
 ################################################################################
@@ -67,6 +67,7 @@ function(get_mpi_compilers)
   set(MPI_C_FOUND ${MPI_C_FOUND} PARENT_SCOPE)
   set(MPI_CXX_FOUND ${MPI_CXX_FOUND} PARENT_SCOPE)
   set(MPI_Fortran_FOUND ${MPI_Fortran_FOUND} PARENT_SCOPE)
+  set(MPI_CXX_INCLUDE_DIRS ${MPI_CXX_INCLUDE_DIRS} PARENT_SCOPE)
 
   # Find underlying C, C++, and Fortran compilers
   if (MPI_C_COMPILER)

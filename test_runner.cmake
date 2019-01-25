@@ -229,7 +229,7 @@ else() # Test command ran successfully, attempt to do diffs
     set(matched_results)
     set(b "-1")
     foreach(baseline ${BIN_BASELINE})
-      math(EXPR b "${b}+1")
+      math(EXPR b "0${b}+1")
 
       if (nconf EQUAL 1)
         list(GET BIN_DIFF_PROG_CONF 0 conf)
@@ -242,7 +242,7 @@ else() # Test command ran successfully, attempt to do diffs
       set(baseline_error)
       set(r "-1")
       foreach(result ${BIN_RESULT})
-        math(EXPR r "${r}+1")
+        math(EXPR r "0${r}+1")
 
         if (NOT CHARM_SMP AND NOT b EQUAL r)
           #message("Charm++ in non-SMP mode: not diffing baseline ${b} with result ${r}")

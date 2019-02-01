@@ -19,7 +19,7 @@ message(STATUS "------------------------------------------")
 
 #### Charm++
 set(CHARM_ROOT ${TPL_DIR}/charm)
-find_package(Charm REQUIRED)
+find_package(Charm)
 
 #### MKL (optional)
 find_package(MKL)
@@ -29,43 +29,38 @@ endif()
 
 #### BLAS/LAPACK library with LAPACKE C-interface
 if (NOT MKL_FOUND)    # Prefer Intel's MKL for BLAS/LAPACK if available
-  set(LAPACKE_ROOT ${TPL_DIR}) # prefer ours
-  find_package(LAPACKE REQUIRED)
+  find_package(LAPACKE)
 endif()
 
 #### Boost
 set(BOOST_INCLUDEDIR ${TPL_DIR}/include) # prefer ours
-find_package(Boost 1.56.0 REQUIRED)
+find_package(Boost 1.56.0)
 if(Boost_FOUND)
   message(STATUS "Boost at ${Boost_INCLUDE_DIR} (include)")
   include_directories(${Boost_INCLUDE_DIR})
 endif()
 
 #### TUT
-set(TUT_ROOT ${TPL_DIR}) # prefer ours
-find_package(TUT REQUIRED)
+find_package(TUT)
 
 #### PStreams
 set(PSTREAMS_ROOT ${TPL_DIR}) # prefer ours
-find_package(PStreams REQUIRED)
+find_package(PStreams)
 
 #### Hypre
-find_package(Hypre 2.9.0 REQUIRED)
+find_package(Hypre 2.9.0)
 
 #### PugiXML
 set(PUGIXML_ROOT ${TPL_DIR}) # prefer ours
-find_package(Pugixml REQUIRED)
+find_package(Pugixml)
 
 #### PEGTL
-set(PEGTL_ROOT ${TPL_DIR}) # prefer ours
-find_package(PEGTL 2.0.0 REQUIRED)
+find_package(PEGTL 2.0.0)
 
 #### Random123
-set(Random123_ROOT ${TPL_DIR}) # prefer ours
-find_package(Random123 REQUIRED)
+find_package(Random123)
 
 #### RNGSSE2 library
-set(RNGSSE2_ROOT ${TPL_DIR}) # prefer ours
 if(ARCH MATCHES "x86")
   find_package(RNGSSE2)
 endif()
@@ -73,46 +68,44 @@ if(RNGSSE2_FOUND)
   set(HAS_RNGSSE2 true)  # will become compiler define in Main/QuinoaConfig.h
 endif()
 
-# Error out if not a single RNG library has been found
-if (NOT MKL_FOUND AND NOT Random123_FOUND AND NOT RNGSSE2_FOUND)
-  message(FATAL "At least one of MKL, RNGSSE2, Random123 is required.")
-endif()
-
 ### HDF5/NetCDF (NetCDF only for static link)
 if(NOT BUILD_SHARED_LIBS)
   set(HDF5_PREFER_PARALLEL true)
   set(HDF5_USE_STATIC_LIBRARIES true)
-  find_package(HDF5 COMPONENTS C HL REQUIRED)
-  find_package(NetCDF REQUIRED)
+  find_package(HDF5 COMPONENTS C HL)
+  find_package(NetCDF)
 else()
   set(HDF5_PREFER_PARALLEL true)
-  find_package(HDF5 COMPONENTS C HL REQUIRED)
+  find_package(HDF5 COMPONENTS C HL)
+endif()
+
+if (NOT HDF5_FOUND)
+  set(HDF5_INCLUDE_DIRS "")
 endif()
 
 #### H5Part
-find_package(H5Part REQUIRED)
+find_package(H5Part)
 
 #### AEC (only for static link)
 if(NOT BUILD_SHARED_LIBS)
-  set(AEC_ROOT ${TPL_DIR}) # prefer ours
-  find_package(AEC REQUIRED)
+  find_package(AEC)
 endif()
 
 #### Zlib (only for static link)
 if(NOT BUILD_SHARED_LIBS AND NOT ARCH MATCHES "ppc64")
-  find_package(ZLIB REQUIRED)
+  find_package(ZLIB)
 endif()
 
 #### Zoltan2 library
-find_package(Zoltan2 REQUIRED)
+find_package(Zoltan2)
 
 #### NumDiff executable
-find_package(NumDiff REQUIRED)
+find_package(NumDiff)
 
 #### ExodusII library
-find_package(SEACASExodus REQUIRED)
+find_package(SEACASExodus)
 set(EXODUS_ROOT ${TPL_DIR}) # prefer ours
-find_package(Exodiff REQUIRED)
+find_package(Exodiff)
 
 #### TestU01 library
 set(TESTU01_ROOT ${TPL_DIR}) # prefer ours
@@ -139,14 +132,9 @@ endif()
 set(BACKWARD_ROOT ${TPL_DIR}) # prefer ours
 find_package(BackwardCpp)
 if(BACKWARDCPP_FOUND)
-  list(APPEND CMAKE_MODULE_PATH "${BACKWARDCPP_CMAKE_CONFIG_DIRS}")
-  include(BackwardConfig)
   set(HAS_BACKWARD true)  # will become compiler define in Main/QuinoaConfig.h
-  message(STATUS "Backward-cpp config: ${BACKWARD_DEFINITIONS}")
-  message(STATUS "Backward-cpp libraries: ${BACKWARD_LIBRARIES}")
 else()
-  set(BACKWARDCPP_INCLUDE_DIRS "")
-  set(BACKWARD_LIBRARIES "")
+  set(BACKWARD_INCLUDE_DIRS "")
 endif()
 
 #### Configure Omega_h
@@ -160,10 +148,85 @@ endif()
 
 #### Configure HighwayHash
 set(HIGHWAYHASH_ROOT ${TPL_DIR}) # prefer ours
-find_package(HighwayHash REQUIRED)
+find_package(HighwayHash)
 
 #### Configure Brigand
 set(BRIGAND_ROOT ${TPL_DIR}) # prefer ours
-find_package(Brigand REQUIRED)
+find_package(Brigand)
 
 message(STATUS "------------------------------------------")
+
+# Function to print a list of missing library names
+# Arguments:
+#   'executable' a string to use in the error message printed for which libraries are not found
+#   'reqlibs' list of cmake variables in the form of "CHARM_FOUND", Boost_FOUND, etc.
+# Details: For each variable in 'reqlibs' if evaluates to false, trim the
+# ending "_FOUND", convert to lower case and print an error message with the
+# list of missing variables names. Intended to use after multiple find_package
+# calls, passing all cmake variables named '*_FOUND' for all required libraries
+# for an executable.
+function(PrintMissing executable reqlibs)
+  foreach(lib ${reqlibs})
+    if(NOT ${lib})
+      string(REPLACE "_FOUND" "" lib ${lib})
+      string(TOLOWER ${lib} lib)
+      list(APPEND missing "${lib}")
+    endif()
+  endforeach()
+  string(REPLACE ";" ", " missing "${missing}")
+  message(STATUS "Executable '${executable}' will NOT be configured, missing: ${missing}")
+endfunction(PrintMissing)
+
+# Enable individual executables based on required TPLs found
+
+if (CHARM_FOUND AND PUGIXML_FOUND AND SEACASExodus_FOUND AND EXODIFF_FOUND AND
+    HDF5_FOUND AND BRIGAND_FOUND AND TUT_FOUND AND PEGTL_FOUND AND Boost_FOUND)
+  set(ENABLE_UNITTEST "true")
+  set(UNITTEST_EXECUTABLE unittest)
+else()
+  PrintMissing(unittest "CHARM_FOUND;PUGIXML_FOUND;SEACASExodus_FOUND;EXODIFF_FOUND;HDF5_FOUND;BRIGAND_FOUND;TUT_FOUND;PEGTL_FOUND;Boost_FOUND")
+endif()
+
+if (CHARM_FOUND AND SEACASExodus_FOUND AND EXODIFF_FOUND AND HYPRE_FOUND AND
+    Zoltan2_FOUND AND HDF5_FOUND AND BRIGAND_FOUND AND PEGTL_FOUND AND
+    (MKL_FOUND OR LAPACKE_FOUND) AND Boost_FOUND)
+  set(ENABLE_INCITER "true")
+  set(INCITER_EXECUTABLE inciter)
+else()
+  PrintMissing(inciter "CHARM_FOUND;SEACASExodus_FOUND;EXODIFF_FOUND;HYPRE_FOUND;Zoltan2_FOUND;HDF5_FOUND;BRIGAND_FOUND;PEGTL_FOUND;MKL_FOUND;LAPACKE_FOUND;Boost_FOUND")
+endif()
+
+if (CHARM_FOUND AND TESTU01_FOUND AND BRIGAND_FOUND AND PEGTL_FOUND AND
+    RANDOM123_FOUND AND Boost_FOUND)
+  set(ENABLE_RNGTEST "true")
+  set(RNGTEST_EXECUTABLE rngtest)
+  set(RNGTEST_SRC_DIR ${QUINOA_SOURCE_DIR}/RNGTest)
+  set(RNGTEST_BIN_DIR ${PROJECT_BINARY_DIR}/RNGTest)
+else()
+  PrintMissing(rngtest "CHARM_FOUND;TESTU01_FOUND;BRIGAND_FOUND;PEGTL_FOUND;RANDOM123_FOUND;Boost_FOUND")
+endif()
+
+if (CHARM_FOUND AND SEACASExodus_FOUND AND EXODIFF_FOUND AND PEGTL_FOUND AND
+    PUGIXML_FOUND AND HDF5_FOUND AND Boost_FOUND)
+  set(ENABLE_MESHCONV "true")
+  set(MESHCONV_EXECUTABLE meshconv)
+else()
+  PrintMissing(meshconv "CHARM_FOUND;SEACASExodus_FOUND;EXODIFF_FOUND;PEGTL_FOUND;PUGIXML_FOUND;HDF5_FOUND;Boost_FOUND")
+endif()
+
+if (CHARM_FOUND AND SEACASExodus_FOUND AND EXODIFF_FOUND AND PEGTL_FOUND AND
+    BRIGAND_FOUND AND HDF5_FOUND AND RANDOM123_FOUND AND Boost_FOUND AND
+    (MKL_FOUND OR LAPACKE_FOUND))
+  set(ENABLE_WALKER "true")
+  set(WALKER_EXECUTABLE walker)
+else()
+  PrintMissing(walker "CHARM_FOUND;SEACASExodus_FOUND;EXODIFF_FOUND;PEGTL_FOUND;BRIGAND_FOUND;HDF5_FOUND;RANDOM123_FOUND;Boost_FOUND;MKL_FOUND;LAPACKE_FOUND")
+endif()
+
+if (CHARM_FOUND AND SEACASExodus_FOUND AND EXODIFF_FOUND AND ROOT_FOUND
+    AND PEGTL_FOUND AND PUGIXML_FOUND AND HDF5_FOUND AND Boost_FOUND)
+  set(ENABLE_FILECONV "true")
+  set(FILECONV_EXECUTABLE fileconv)
+else()
+  PrintMissing(fileconv "CHARM_FOUND;SEACASExodus_FOUND;EXODIFF_FOUND;ROOT_FOUND;PEGTL_FOUND;PUGIXML_FOUND;HDF5_FOUND;Boost_FOUND")
+endif()
